@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <link type="Image/x-icon" href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Сервер - ИнтерВектор</title>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="/main" class="nav-logo">
+                <img src="img/logo.svg" alt="ИнтерВектор">
+            </a>
+            <div class="nav-links">
+                <a href="/contract" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <line x1="10" y1="9" x2="8" y2="9"></line>
+                    </svg>
+                    <span>Договоры</span>
+                </a>
+                <a href="/search" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>Поиск</span>
+                </a>
+                <a href="/server" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                    </svg>
+                    <span>Сервер</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Настройки</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <div class="server-grid">
+            <section class="server-nav">
+                <div class="nav-buttons">
+                    <a href="/server?tab=tariffs" class="nav-btn {{#if (eq activeTab 'tariffs')}}active{{/if}}">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                        Тарифные планы
+                    </a>
+                    <a href="/server?tab=network" class="nav-btn {{#if (eq activeTab 'network')}}active{{/if}}">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M23 12l-7-7v4H8v6h8v4l7-7z"/>
+                            <path d="M1 12l7 7v-4h8v-6H8V5L1 12z"/>
+                        </svg>
+                        Статус сетей
+                    </a>
+                    <a href="/server?tab=connections" class="nav-btn {{#if (eq activeTab 'connections')}}active{{/if}}">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/>
+                        </svg>
+                        Соединения
+                    </a>
+                </div>
+            </section>
+
+            <section class="server-content">
+                {{#if (eq activeTab 'tariffs')}}
+                    <h2>Тарифные планы</h2>
+                    <div class="tariffs-content">
+                        {{#if canManageTariffs}}
+                        <div class="tariff-item new-tariff">
+                            <form action="/create-tariff" method="POST" class="tariff-form">
+                                <h3>Новый тарифный план</h3>
+                                <div class="form-row">
+                                    <label>Название:</label>
+                                    <input type="text" name="name" required>
+                                </div>
+                                <div class="form-row">
+                                    <label>Скорость (Мбит/с):</label>
+                                    <input type="number" name="speed" required>
+                                </div>
+                                <div class="form-row">
+                                    <label>Цена (руб./мес.):</label>
+                                    <input type="number" name="price" required>
+                                </div>
+                                <div class="form-row">
+                                    <label>Лимит (ГБ):</label>
+                                    <input type="number" name="limit_gb" required>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="save-btn">Создать тариф</button>
+                                </div>
+                            </form>
+                        </div>
+                        {{/if}}
+                        {{#if tariffs}}
+                        {{#each tariffs}}
+                            <div class="tariff-item">
+                                {{#if ../canManageTariffs}}
+                                <form action="/update-tariff" method="POST" class="tariff-form">
+                                    <input type="hidden" name="id" value="{{id}}">
+                                    <div class="form-row">
+                                        <label>Название:</label>
+                                        <input type="text" name="name" value="{{name}}" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <label>Скорость (Мбит/с):</label>
+                                        <input type="number" name="speed" value="{{speed}}" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <label>Цена (руб./мес.):</label>
+                                        <input type="number" name="price" value="{{price}}" required>
+                                    </div>
+                                    <div class="form-row">
+                                        <label>Лимит (ГБ):</label>
+                                        <input type="number" name="limit_gb" value="{{limit_gb}}" required>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="save-btn">Сохранить</button>
+                                        <a href="/delete-tariff?id={{id}}" class="delete-btn">Удалить</a>
+                                    </div>
+                                </form>
+                                {{else}}
+                                <div class="tariff-view">
+                                    <h3>{{name}}</h3>
+                                    <p>Скорость: {{speed}} Мбит/с</p>
+                                    <p>Цена: {{price}} руб./мес.</p>
+                                    <p>Лимит: {{limit_gb}} ГБ</p>
+                                </div>
+                                {{/if}}
+                            </div>
+                        {{/each}}
+                        {{else}}
+                            <p class="no-data">Тарифные планы не найдены</p>
+                        {{/if}}
+                    </div>
+                {{else if (eq activeTab 'network')}}
+                    <h2>Статус сетей</h2>
+                    <div class="network-content">
+                        <!-- Здесь будет содержимое для статуса сетей -->
+                    </div>
+                {{else}}
+                    <h2>Соединения</h2>
+                    <div class="connections-content">
+                        <!-- Здесь будет содержимое для соединений -->
+                    </div>
+                {{/if}}
+            </section>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <link type="Image/x-icon" href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Главная - ИнтерВектор</title>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="/main" class="nav-logo">
+                <img src="img/logo.svg" alt="ИнтерВектор">
+            </a>
+            <div class="nav-links">
+                <a href="/contract" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <line x1="10" y1="9" x2="8" y2="9"></line>
+                    </svg>
+                    <span>Договоры</span>
+                </a>
+                <a href="/search" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>Поиск</span>
+                </a>
+                <a href="/server" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                    </svg>
+                    <span>Сервер</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Настройки</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <div class="dashboard-grid">
+            <section class="notifications-card">
+                <h2>Уведомления</h2>
+                <div class="notifications-list">
+                    {{#if notifications}}
+                        {{#each notifications}}
+                            <div class="notification-item">
+                                <span class="notification-type {{importanceClass importance}}">{{importance}}</span>
+                                <div class="notification-content">
+                                    <p>{{content}}</p>
+                                    <span class="notification-time">{{formatDate date}}</span>
+                                </div>
+                            </div>
+                        {{/each}}
+                    {{else}}
+                        <p class="no-data">Уведомлений нет.</p>
+                    {{/if}}
+                </div>
+            </section>
+
+            <section class="summary-card">
+                <h2>Сводка по договорам</h2>
+                <div class="summary-grid">
+                    <div class="summary-item active">
+                        <div class="summary-icon">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" class="success"/>
+                                <path d="M9 12l2 2 4-4"/>
+                            </svg>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-number">{{active_users}}</span>
+                            <span class="summary-label">Активные договоры</span>
+                        </div>
+                    </div>
+                    <div class="summary-item suspended">
+                        <div class="summary-icon">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" class="warning"/>
+                                <path d="M8 12h8"/>
+                            </svg>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-number">{{passive_users}}</span>
+                            <span class="summary-label">Приостановленные договоры</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

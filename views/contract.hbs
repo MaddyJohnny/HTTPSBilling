@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/style.css">
+    <link type="Image/x-icon" href="/img/favicon.ico" rel="icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>Договор - ИнтерВектор</title>
+</head>
+<body>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="/main" class="nav-logo">
+                <img src="img/logo.svg" alt="ИнтерВектор">
+            </a>
+            <div class="nav-links">
+                <a href="/contract" class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <line x1="10" y1="9" x2="8" y2="9"></line>
+                    </svg>
+                    <span>Договоры</span>
+                </a>
+                <a href="/search" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>Поиск</span>
+                </a>
+                <a href="/server" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                        <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                        <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                        <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                    </svg>
+                    <span>Сервер</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06-.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Настройки</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        <div class="contract-grid">
+            <section class="contract-nav">
+                <div class="nav-buttons">
+                    <button class="nav-btn active" data-tab="parameters">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z"/>
+                        </svg>
+                        Параметры договора
+                    </button>
+                    <button class="nav-btn" data-tab="tariff">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                        Тарифный план
+                    </button>
+                    <button class="nav-btn" data-tab="balance">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Баланс
+                    </button>
+                    <button class="nav-btn" data-tab="connections">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/>
+                        </svg>
+                        Соединения
+                    </button>
+                </div>
+            </section>
+
+            <section class="contract-content">
+                <div class="tab-content active" id="parameters">
+                    <h2>Параметры договора</h2>
+                    <form class="contract-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Номер договора</label>
+                                <input type="text" name="contract_number" required>
+                            </div>
+                            <div class="form-group">
+                                <label>ФИО</label>
+                                <input type="text" name="full_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Телефон</label>
+                                <input type="tel" name="phone" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Адрес подключения</label>
+                                <input type="text" name="connection_address" required>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h3>Документ, удостоверяющий личность</h3>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Документ</label>
+                                        <select name="document_type" required>
+                                            <option value="passport">Паспорт РФ</option>
+                                            <option value="foreign_passport">Заграничный паспорт</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Серия</label>
+                                        <input type="text" name="document_series" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Номер</label>
+                                        <input type="text" name="document_number" required>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Кем выдан</label>
+                                        <input type="text" name="document_issued_by" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Дата выдачи</label>
+                                        <input type="date" name="document_issue_date" required>
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label>Адрес регистрации</label>
+                                        <input type="text" name="registration_address" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Дата рождения</label>
+                                        <input type="date" name="birth_date" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Статус договора</label>
+                                <select name="contract_status" required>
+                                    <option value="active">Активный</option>
+                                    <option value="suspended">Приостановлен</option>
+                                    <option value="terminated">Расторгнут</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Дата оформления договора</label>
+                                <input type="date" name="contract_date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Дата фактического подключения</label>
+                                <input type="date" name="connection_date" required>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="submit-btn">Сохранить</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/js/contract.js"></script>
+</body>
+</html>
