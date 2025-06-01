@@ -57,19 +57,20 @@
         <div class="search-grid">
             <section class="search-form-card">
                 <h2>Поиск договора</h2>
-                <form class="search-form">
+                <form class="search-form" method="GET" action="/search">
                     <div class="form-group">
                         <label>Номер договора</label>
-                        <input type="text" name="contract_number" placeholder="Введите номер договора">
+                        <input type="text" name="contract_number" value="{{query.contract_number}}" placeholder="Введите номер договора">
                     </div>
                     <div class="form-group">
                         <label>ФИО</label>
-                        <input type="text" name="full_name" placeholder="Введите ФИО">
+                        <input type="text" name="full_name" value="{{query.full_name}}" placeholder="Введите ФИО">
                     </div>
                     <div class="form-group">
                         <label>Адрес подключения</label>
-                        <input type="text" name="connection_address" placeholder="Введите адрес">
+                        <input type="text" name="connection_address" value="{{query.connection_address}}" placeholder="Введите адрес">
                     </div>
+                    <input type="hidden" name="page" value="1">
                     <button type="submit" class="submit-btn">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <circle cx="11" cy="11" r="8"></circle>
@@ -81,10 +82,45 @@
             </section>
 
             <section class="search-results-card">
-                <h2>Результаты поиска</h2>
-                <div class="results-placeholder">
-                    <p>Введите параметры поиска</p>
-                </div>
+                <h2>
+                    Результаты поиска
+                    {{#if results}}
+                        <span class="results-count">(найдено: {{totalResults}})</span>
+                    {{/if}}
+                </h2>
+                {{#if results}}
+                    <div class="results-list">
+                        {{#each results}}
+                            <a href="/contract?number={{contract_number}}&tab=parameters" class="result-item">
+                                <div class="result-info">
+                                    <h3>{{contract_number}}</h3>
+                                    <p>{{full_name}}</p>
+                                    <span class="status-badge {{contract_status}}">{{contract_status}}</span>
+                                </div>
+                            </a>
+                        {{/each}}
+                    </div>
+                    
+                    {{#if pagination}}
+                        <div class="pagination">
+                            {{#if pagination.prev}}
+                                <a href="/search?{{pagination.prevQuery}}" class="page-btn">Назад</a>
+                            {{/if}}
+                            <span class="page-info">Страница {{pagination.currentPage}} из {{pagination.totalPages}}</span>
+                            {{#if pagination.next}}
+                                <a href="/search?{{pagination.nextQuery}}" class="page-btn">Вперед</a>
+                            {{/if}}
+                        </div>
+                    {{/if}}
+                {{else}}
+                    <div class="results-placeholder">
+                        {{#if isSearch}}
+                            <p>Ничего не найдено</p>
+                        {{else}}
+                            <p>Введите параметры поиска</p>
+                        {{/if}}
+                    </div>
+                {{/if}}
             </section>
         </div>
     </main>

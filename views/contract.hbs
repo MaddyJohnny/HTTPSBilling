@@ -57,119 +57,241 @@
         <div class="contract-grid">
             <section class="contract-nav">
                 <div class="nav-buttons">
-                    <button class="nav-btn active" data-tab="parameters">
+                    <a href="/contract?tab=parameters{{#if contractNumber}}&number={{contractNumber}}{{/if}}" 
+                       class="nav-btn {{#if (eq activeTab 'parameters')}}active{{/if}}">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <path d="M20 7h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2z"/>
                         </svg>
                         Параметры договора
-                    </button>
-                    <button class="nav-btn" data-tab="tariff">
+                    </a>
+                    <a href="{{#if contractNumber}}/contract?tab=tariff&number={{contractNumber}}{{else}}#{{/if}}" 
+                       class="nav-btn {{#if (eq activeTab 'tariff')}}active{{/if}} {{#unless contract}}disabled{{/unless}}">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                         </svg>
                         Тарифный план
-                    </button>
-                    <button class="nav-btn" data-tab="balance">
+                    </a>
+                    <a href="{{#if contractNumber}}/contract?tab=balance&number={{contractNumber}}{{else}}#{{/if}}" 
+                       class="nav-btn {{#if (eq activeTab 'balance')}}active{{/if}} {{#unless contract}}disabled{{/unless}}">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
                         Баланс
-                    </button>
-                    <button class="nav-btn" data-tab="connections">
+                    </a>
+                    <a href="{{#if contractNumber}}/contract?tab=connections&number={{contractNumber}}{{else}}#{{/if}}" 
+                       class="nav-btn {{#if (eq activeTab 'connections')}}active{{/if}} {{#unless contract}}disabled{{/unless}}">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/>
                         </svg>
                         Соединения
-                    </button>
+                    </a>
                 </div>
             </section>
 
             <section class="contract-content">
-                <div class="tab-content active" id="parameters">
-                    <h2>Параметры договора</h2>
-                    <form class="contract-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Номер договора</label>
-                                <input type="text" name="contract_number" required>
-                            </div>
-                            <div class="form-group">
-                                <label>ФИО</label>
-                                <input type="text" name="full_name" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Телефон</label>
-                                <input type="tel" name="phone" required>
-                            </div>
-                            <div class="form-group full-width">
-                                <label>Адрес подключения</label>
-                                <input type="text" name="connection_address" required>
-                            </div>
-                            
-                            <div class="form-section">
-                                <h3>Документ, удостоверяющий личность</h3>
-                                <div class="form-grid">
-                                    <div class="form-group">
-                                        <label>Документ</label>
-                                        <select name="document_type" required>
-                                            <option value="passport">Паспорт РФ</option>
-                                            <option value="foreign_passport">Заграничный паспорт</option>
-                                        </select>
+                {{#if (eq activeTab 'parameters')}}
+                    <div class="tab-content active" id="parameters">
+                        <h2>Параметры договора</h2>
+                        <form class="contract-form" action="{{#if contractNumber}}/update-contract{{else}}/create-contract{{/if}}" method="POST">
+                            {{#if contractNumber}}
+                            <input type="hidden" name="original_contract_number" value="{{contractNumber}}">
+                            {{/if}}
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Номер договора</label>
+                                    <input type="text" name="contract_number" value="{{contractNumber}}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>ФИО</label>
+                                    <input type="text" name="full_name" value="{{full_name}}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Телефон</label>
+                                    <input type="tel" 
+                                           name="phone" 
+                                           required 
+                                           maxlength="12"
+                                           value="{{phone}}"
+                                           oninput="this.value = this.value.startsWith('+7') ? this.value : '+7' + this.value.replace(/\D/g, '').substring(0,10)"
+                                           placeholder="+79999999999">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Адрес подключения</label>
+                                    <input type="text" name="connection_address" value="{{connection_address}}" required>
+                                </div>
+                                
+                                <div class="form-section">
+                                    <h3>Документ, удостоверяющий личность</h3>
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label>Документ</label>
+                                            <input type="text" name="document_type" value="{{documentType}}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Серия</label>
+                                            <input type="text" name="document_series" value="{{documentSeries}}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Номер</label>
+                                            <input type="text" name="document_number" value="{{documentNumber}}" required>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label>Кем выдан</label>
+                                            <input type="text" name="document_issued_by" value="{{documentIssuedBy}}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Дата выдачи</label>
+                                            <input type="date" name="document_issue_date" value="{{documentIssueDate}}" required>
+                                        </div>
+                                        <div class="form-group full-width">
+                                            <label>Адрес регистрации</label>
+                                            <input type="text" name="registration_address" value="{{registration_address}}" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Дата рождения</label>
+                                            <input type="date" name="birth_date" value="{{birthDate}}" required>
+                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label>Серия</label>
-                                        <input type="text" name="document_series" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Номер</label>
-                                        <input type="text" name="document_number" required>
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label>Кем выдан</label>
-                                        <input type="text" name="document_issued_by" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Дата выдачи</label>
-                                        <input type="date" name="document_issue_date" required>
-                                    </div>
-                                    <div class="form-group full-width">
-                                        <label>Адрес регистрации</label>
-                                        <input type="text" name="registration_address" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Дата рождения</label>
-                                        <input type="date" name="birth_date" required>
-                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Статус договора</label>
+                                    <select name="contract_status" required>
+                                        <option value="Приостановлен" {{#if (eq contract_status "Приостановлен")}}selected{{/if}}>Приостановлен</option>
+                                        <option value="Активный" {{#if (eq contract_status "Активный")}}selected{{/if}}>Активный</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Дата оформления договора</label>
+                                    <input type="date" name="contract_date" value="{{contract_date}}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Дата фактического подключения</label>
+                                    <input type="date" name="connection_date" value="{{connection_date}}">
                                 </div>
                             </div>
 
+                            <div class="form-actions">
+                                <button type="submit" class="submit-btn">Сохранить</button>
+                            </div>
+                        </form>
+                    </div>
+                {{else if (eq activeTab 'tariff')}}
+                    <div class="tab-content active" id="tariff">
+                        <h2>Тарифный план</h2>
+                        <form class="tariff-form" action="/contract/set-tariff" method="POST">
+                            <input type="hidden" name="contract_number" value="{{contractNumber}}">
                             <div class="form-group">
-                                <label>Статус договора</label>
-                                <select name="contract_status" required>
-                                    <option value="active">Активный</option>
-                                    <option value="suspended">Приостановлен</option>
-                                    <option value="terminated">Расторгнут</option>
+                                <label>Выберите тарифный план</label>
+                                <select name="tariff_id" required>
+                                    {{#each tariffs}}
+                                        <option value="{{id}}" {{#if (eq ../contract.tariff_id id)}}selected{{/if}}>
+                                            {{name}} ({{speed}} Мбит/с, {{limit_gb}} ГБ) - {{price}}₽
+                                        </option>
+                                    {{/each}}
                                 </select>
                             </div>
-                            <div class="form-group">
-                                <label>Дата оформления договора</label>
-                                <input type="date" name="contract_date" required>
+                            <div class="form-actions">
+                                <button type="submit" class="submit-btn">Сохранить</button>
                             </div>
-                            <div class="form-group">
-                                <label>Дата фактического подключения</label>
-                                <input type="date" name="connection_date" required>
+                        </form>
+                    </div>
+                {{else if (eq activeTab 'balance')}}
+                    <div class="tab-content active" id="balance">
+                        <h2>Баланс</h2>
+                        <div class="balance-info">
+                            <div class="info-row">
+                                <label>Текущий баланс:</label>
+                                <span>{{contract.current_balance}}₽</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Последнее пополнение:</label>
+                                <span>{{contract.last_debit}}₽</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Последнее списание:</label>
+                                <span>{{contract.last_credit}}₽</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Дата последнего платежа:</label>
+                                <span>{{#if contract.last_debit_date}}{{formatDate contract.last_debit_date}}{{else}}Не определено{{/if}}</span>
+                            </div>
+                            <div class="info-row">
+                                <label>Дата следующего платежа:</label>
+                                <span>{{#if contract.next_debit_date}}{{formatDate contract.next_debit_date}}{{else}}Не определено{{/if}}</span>
                             </div>
                         </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="submit-btn">Сохранить</button>
+                        <div class="admin-forms-container">
+                            <div class="admin-payment-form">
+                                <h3>Административное пополнение</h3>
+                                <form action="/contract/add-payment" method="POST">
+                                    <input type="hidden" name="contract_number" value="{{contractNumber}}">
+                                    <div class="form-group">
+                                        <label>Сумма платежа</label>
+                                        <input type="number" name="amount" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="submit-btn">Пополнить</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="admin-payment-form debit-form">
+                                <h3>Административное списание</h3>
+                                <form action="/contract/debit-balance" method="POST">
+                                    <input type="hidden" name="contract_number" value="{{contractNumber}}">
+                                    <div class="form-group">
+                                        <label>Сумма списания</label>
+                                        <input type="number" name="amount" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" class="submit-btn debit-btn">Списать</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </form>
-                </div>
+                    </div>
+                {{else if (eq activeTab 'connections')}}
+                    <div class="tab-content active" id="connections">
+                        <h2>Соединения</h2>
+                        <div class="connections-form">
+                            <form action="/contract/set-connection" method="POST">
+                                <input type="hidden" name="contract_number" value="{{contractNumber}}">
+                                <div class="form-group">
+                                    <label>Выберите соединение</label>
+                                    <select id="connectionSelect" name="connection_id" required>
+                                        <option value="">Выберите соединение</option>
+                                        {{#each connections}}
+                                            <option value="{{id}}" 
+                                                    data-min-ip="{{min_ip}}"
+                                                    data-max-ip="{{max_ip}}"
+                                                    {{#if (eq ../contract.connection_id id)}}selected{{/if}}>
+                                                {{name}}
+                                            </option>
+                                        {{/each}}
+                                    </select>
+                                </div>
+                                <div id="ipInputContainer" class="form-group" style="display: none;">
+                                    <label>IP адрес</label>
+                                    <div class="ip-input-wrapper">
+                                        <span id="ipPrefix"></span>
+                                        <input type="text" id="ipSuffix" name="ip_suffix" 
+                                               pattern="\d{1,3}\.\d{1,3}" 
+                                               placeholder="XX.XX"
+                                               value="{{contract.ip}}" required>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="submit-btn">Сохранить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                {{/if}}
             </section>
         </div>
     </main>
-
-    <script src="/js/contract.js"></script>
+    {{#each scripts}}{{{this}}}{{/each}}
 </body>
 </html>

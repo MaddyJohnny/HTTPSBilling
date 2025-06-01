@@ -37,6 +37,22 @@ const pool = mysql.createPool({
 
 app.set("view engine", "hbs");
 
+// Add this function before app.get("/contract")
+function formatContractNumber(date, count) {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    const number = String(count + 1).padStart(2, '0');
+    return `${month}${day}${number}/${year}`;
+}
+
+// Add this helper function at the top of the file
+function formatDateForInput(mysqlDate) {
+    if (!mysqlDate) return '';
+    const date = new Date(mysqlDate);
+    return date.toLocaleDateString('en-CA'); // Формат YYYY-MM-DD без изменения временной зоны
+}
+
 app.get("/", function (req, res) {
     res.render("auth");
 });
@@ -67,6 +83,17 @@ app.get("/main", function (req, res) {
       return date;
     });
     
+    // Добавляем хелпер для форматирования телефона
+hbs.registerHelper("formatPhone", (phone) => {
+    if (!phone) return '';
+    const cleaned = phone.replace(/\D/g, '');
+    const match = cleaned.match(/^7(\d{10})$/);
+    if (match) {
+        return `+7${match[1]}`;
+    }
+    return phone;
+});
+
     // Query for notifications and contracts
     pool.query("SELECT COUNT(*) AS active_users FROM contract WHERE contract_status = 'Активный'", (err, contractActiveResults) => {
     if (err) {
@@ -98,43 +125,333 @@ app.get("/main", function (req, res) {
 });
 
 app.get("/contract", function (req, res) {
-      res.render("contract");
-    });
+    const activeTab = req.query.tab || 'parameters';
+    const contractNumber = req.query.number;
 
-app.get("/search", function (req, res) {
-    res.render("search");
-});
+    if (contractNumber) {
+        if (activeTab === 'connections') {
+            // Получаем список соединений
+            pool.query(
+                `SELECT c.*, c.connection_id, c.ip, t.name as tariff_name 
+                 FROM contract c 
+                 LEFT JOIN tariffplan t ON c.tariff_id = t.id 
+                 WHERE c.contract_number = ?`,
+                [contractNumber],
+                (err, contractResults) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send("Ошибка сервера");
+                    }
 
-app.get("/server", function (req, res) {
-    const activeTab = req.query.tab || 'tariffs';
+                    const contract = contractResults[0];
+                    // Получаем последние два октета IP если он есть
+                    let ipSuffix = '';
+                    if (contract.ip) {
+                        ipSuffix = contract.ip.split('.').slice(2).join('.');
+                    }
 
-    if (activeTab === 'tariffs') {
-        // Получаем роль пользователя
-        pool.query("SELECT role FROM user WHERE id = ?", [req.session.user.id], (err, roleResults) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send("Ошибка сервера. Попробуйте позже.");
-            }
+                    // Получаем все соединения
+                    pool.query("SELECT * FROM connection", (err, connectionResults) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).send("Ошибка сервера");
+                        }
 
-            const userRole = roleResults[0]?.role || 'BASE';
-            const canManageTariffs = ['PLUS', 'PRO'].includes(userRole);
+                        res.render("contract", {
+                            activeTab,
+                            contract: {
+                                ...contract,
+                                ip_suffix: contract.ip ? contract.ip.split('.').slice(2).join('.') : ''
+                            },
+                            contractNumber,
+                            connections: connectionResults,
+                            scripts: [
+                                `<script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const connectionSelect = document.getElementById('connectionSelect');
+                                    const ipInputContainer = document.getElementById('ipInputContainer');
+                                    const ipPrefix = document.getElementById('ipPrefix');
+                                    const ipSuffix = document.getElementById('ipSuffix');
 
-            // Получаем тарифы
-            pool.query("SELECT * FROM tariffplan", (err, tariffResults) => {
+                                    // Показываем IP поле и текущее значение если соединение выбрано
+                                    if (connectionSelect.value) {
+                                        const selected = connectionSelect.selectedOptions[0];
+                                        const minIp = selected.dataset.minIp;
+                                        const prefix = minIp.split('.').slice(0, 2).join('.');
+                                        ipPrefix.textContent = prefix + '.';
+                                        ipInputContainer.style.display = 'block';
+
+                                        // Отображаем только последние два октета текущего IP
+                                        if (ipSuffix.value) {
+                                            ipSuffix.value = ipSuffix.value.split('.').slice(-2).join('.');
+                                        }
+                                    }
+
+                                    // Обработчик изменения соединения
+                                    connectionSelect.addEventListener('change', function() {
+                                        const selected = connectionSelect.selectedOptions[0];
+                                        if (selected.value) {
+                                            const minIp = selected.dataset.minIp;
+                                            const maxIp = selected.dataset.maxIp;
+                                            
+                                            const prefix = minIp.split('.').slice(0, 2).join('.');
+                                            ipPrefix.textContent = prefix + '.';
+                                            
+                                            const minRange = minIp.split('.').slice(2);
+                                            const maxRange = maxIp.split('.').slice(2);
+                                            
+                                            ipSuffix.value = '';
+                                            ipSuffix.setAttribute('placeholder', minRange.join('.') + ' - ' + maxRange.join('.'));
+                                            
+
+                                            ipInputContainer.style.display = 'block';
+                                        } else {
+                                            ipInputContainer.style.display = 'none';
+                                        }
+                                    });
+                                });
+                                </script>`
+                            ]
+                        });
+                    });
+                }
+            );
+        } else if (activeTab === 'tariff') {
+            // Получаем данные договора и список тарифов
+            pool.query(
+                `SELECT c.*, t.name as tariff_name 
+                 FROM contract c 
+                 LEFT JOIN tariffplan t ON c.tariff_id = t.id 
+                 WHERE c.contract_number = ?`,
+                [contractNumber],
+                (err, contractResults) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send("Ошибка сервера");
+                    }
+
+                    // Получаем все тарифы для выбора
+                    pool.query("SELECT * FROM tariffplan", (err, tariffResults) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).send("Ошибка сервера");
+                        }
+
+                        res.render("contract", {
+                            activeTab,
+                            contract: contractResults[0],
+                            contractNumber,
+                            tariffs: tariffResults
+                        });
+                    });
+                }
+            );
+        } else if (activeTab === 'balance') {
+            pool.query(
+                `SELECT c.*, b.current_balance, b.last_debit, b.last_credit, b.last_debit_date, b.next_debit_date 
+                 FROM contract c 
+                 LEFT JOIN balance b ON c.balance_id = b.id 
+                 WHERE c.contract_number = ?`,
+                [contractNumber],
+                (err, results) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send("Ошибка сервера");
+                    }
+                    
+                    const contract = results[0];
+                    res.render("contract", {
+                        activeTab,
+                        contractNumber,
+                        contract: {
+                            ...contract,
+                            current_balance: Number(contract.current_balance || 0).toFixed(2),
+                            last_debit: Number(contract.last_debit || 0).toFixed(2),
+                            last_credit: Number(contract.last_credit || 0).toFixed(2)
+                        }
+                    });
+                }
+            );
+        } else {
+            pool.query("SELECT * FROM contract WHERE contract_number = ?", [contractNumber], (err, results) => {
                 if (err) {
                     console.error(err);
                     return res.status(500).send("Ошибка сервера. Попробуйте позже.");
                 }
+                
+                const contract = results[0];
+                res.render("contract", { 
+                    activeTab,
+                    contract,
+                    contractExists: !!contract,
+                    // Обновляем имена переменных
+                    contractNumber: contract.contract_number,
+                    contract_status: contract.contract_status, // убедимся, что передается правильное имя поля
+                    full_name: contract.full_name,
+                    phone: contract.phone,
+                    connection_address: contract.connection_address,
+                    registration_address: contract.registration_address,  // изменено с registrationAddress
+                    birthDate: formatDateForInput(contract.birth_date),
+                    documentType: contract.document_type,
+                    documentSeries: contract.document_series,
+                    documentNumber: contract.document_number,
+                    documentIssuedBy: contract.issued_by,
+                    documentIssueDate: formatDateForInput(contract.issue_date),
+                    contractStatus: contract.contract_status,
+                    contract_date: formatDateForInput(contract.contract_date),
+                    connection_date: formatDateForInput(contract.actual_connection_date)
+                });
+            });
+        }
+    } else {
+        // Получаем количество договоров за сегодня
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        pool.query(
+            "SELECT COUNT(*) as count FROM contract WHERE DATE(contract_date) = DATE(?)",
+            [today],
+            (err, results) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send("Ошибка сервера. Попробуйте позже.");
+                }
+
+                const contractNumber = formatContractNumber(today, results[0].count);
+                
+                res.render("contract", { 
+                    activeTab,
+                    contractExists: false,
+                    contractNumber
+                });
+            }
+        );
+    }
+});
+
+app.get("/search", function (req, res) {
+    const { contract_number, full_name, connection_address, page = 1 } = req.query;
+    const limit = 5;
+    const offset = (page - 1) * limit;
+    
+    let conditions = [];
+    let params = [];
+    
+    if (contract_number) {
+        conditions.push("contract_number LIKE ?");
+        params.push(`%${contract_number}%`);
+    }
+    if (full_name) {
+        conditions.push("full_name LIKE ?");
+        params.push(`%${full_name}%`);
+    }
+    if (connection_address) {
+        conditions.push("connection_address LIKE ?");
+        params.push(`%${connection_address}%`);
+    }
+
+    if (conditions.length > 0) {
+        const whereClause = conditions.join(" AND ");
+        
+        // Получаем общее количество результатов
+        pool.query(
+            `SELECT COUNT(*) as total FROM contract WHERE ${whereClause}`,
+            params,
+            (err, countResults) => {
+                if (err) {
+                    console.error(err);
+                    return res.status(500).send("Ошибка сервера");
+                }
+
+                const total = countResults[0].total;
+                const totalPages = Math.ceil(total / limit);
+
+                // Получаем результаты для текущей страницы
+                pool.query(
+                    `SELECT contract_number, full_name, contract_status 
+                     FROM contract 
+                     WHERE ${whereClause} 
+                     LIMIT ? OFFSET ?`,
+                    [...params, limit, offset],
+                    (err, results) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).send("Ошибка сервера");
+                        }
+
+                        // Формируем параметры для пагинации
+                        const queryParams = new URLSearchParams(req.query);
+                        queryParams.delete('page');
+                        const baseQuery = queryParams.toString();
+
+                        res.render("search", {
+                            results,
+                            isSearch: true,
+                            query: req.query,
+                            totalResults: total,
+                            pagination: {
+                                currentPage: parseInt(page),
+                                totalPages,
+                                prev: page > 1,
+                                next: page < totalPages,
+                                prevQuery: `${baseQuery}&page=${parseInt(page) - 1}`,
+                                nextQuery: `${baseQuery}&page=${parseInt(page) + 1}`
+                            }
+                        });
+                    }
+                );
+            }
+        );
+    } else {
+        res.render("search", { isSearch: false });
+    }
+});
+
+app.get("/server", function (req, res) {
+    const activeTab = req.query.tab || 'tariffs';
+    
+    // Получаем роль пользователя
+    pool.query("SELECT role FROM user WHERE id = ?", [req.session.user.id], (err, roleResults) => {
+        if (err) {
+            return res.status(500).send("Ошибка сервера");
+        }
+
+        const userRole = roleResults[0]?.role || 'BASE';
+        const canManageTariffs = ['PLUS', 'PRO'].includes(userRole);
+        const isPro = userRole === 'PRO';
+
+        if (activeTab === 'connections' && !isPro) {
+            return res.redirect('/server?tab=tariffs');
+        }
+
+        if (activeTab === 'network') {
+            pool.query("SELECT * FROM connection", (err, connections) => {
+                if (err) {
+                    return res.status(500).send("Ошибка сервера");
+                }
+                res.render("server", { activeTab, connections, isPro, canManageTariffs });
+            });
+        } else if (activeTab === 'connections' && isPro) {
+            pool.query("SELECT * FROM connection", (err, connections) => {
+                if (err) {
+                    return res.status(500).send("Ошибка сервера");
+                }
+                res.render("server", { activeTab, connections, isPro, canManageTariffs });
+            });
+        } else {
+            pool.query("SELECT * FROM tariffplan", (err, tariffResults) => {
+                if (err) {
+                    return res.status(500).send("Ошибка сервера");
+                }
                 res.render("server", { 
                     activeTab,
                     tariffs: tariffResults,
-                    canManageTariffs
+                    canManageTariffs,
+                    isPro
                 });
             });
-        });
-    } else {
-        res.render("server", { activeTab });
-    }
+        }
+    });
 });
 
 app.get("/settings", function (req, res) {
@@ -391,6 +708,335 @@ app.get("/delete-notification", function (req, res) {
     });
 });
 
+app.post("/create-contract", function (req, res) {
+    // Сначала создаем запись в balance
+    pool.query(
+        "INSERT INTO balance (current_balance, last_debit, last_debit_date, next_debit_date) VALUES (0, 0, NULL, NULL)",
+        (err, balanceResult) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера. Попробуйте позже.");
+            }
+
+            const balanceId = balanceResult.insertId;
+            const {
+                contract_number,
+                full_name,
+                phone,
+                connection_address,
+                registration_address,
+                birth_date,
+                document_type,
+                document_series,
+                document_number,
+                document_issued_by,
+                document_issue_date,
+                contract_status,
+                contract_date,
+                connection_date
+            } = req.body;
+
+            // Проверяем дату подключения
+            const actual_connection_date = connection_date || null;
+
+            // Затем создаем запись в contract
+            pool.query(
+                `INSERT INTO contract (
+                    contract_number, full_name, phone, connection_address, 
+                    registration_address, birth_date, document_type, 
+                    document_series, document_number, issued_by, 
+                    issue_date, contract_status, contract_date, 
+                    actual_connection_date, balance_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    contract_number,
+                    full_name,
+                    phone,
+                    connection_address,
+                    registration_address,
+                    birth_date,
+                    document_type,
+                    document_series,
+                    document_number,
+                    document_issued_by,
+                    document_issue_date,
+                    contract_status,
+                    contract_date,
+                    actual_connection_date,
+                    balanceId
+                ],
+                (err, contractResult) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send("Ошибка сервера. Попробуйте позже.");
+                    }
+                    // После создания договора редиректим с номером договора
+                    res.redirect(`/contract?tab=parameters&number=${req.body.contract_number}`);
+                }
+            );
+        }
+    );
+});
+
+app.post("/contract/set-tariff", function (req, res) {
+    const { contract_number, tariff_id } = req.body;
+    
+    pool.query(
+        "UPDATE contract SET tariff_id = ? WHERE contract_number = ?",
+        [tariff_id, contract_number],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера. Попробуйте позже.");
+            }
+            res.redirect(`/contract?tab=tariff&number=${contract_number}`);
+        }
+    );
+});
+
+app.post("/contract/add-payment", function (req, res) {
+    const { contract_number, amount } = req.body;
+    
+    // Проверяем сумму платежа
+    if (isNaN(amount) || amount <= 0) {
+        return res.status(400).send("Некорректная сумма платежа");
+    }
+    
+    // Получаем информацию о договоре, тарифе и балансе
+    pool.query(
+        `SELECT c.*, t.price, b.current_balance, b.next_debit_date 
+         FROM contract c 
+         LEFT JOIN tariffplan t ON c.tariff_id = t.id 
+         LEFT JOIN balance b ON c.balance_id = b.id
+         WHERE c.contract_number = ?`,
+        [contract_number],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера");
+            }
+
+            const contract = results[0];
+            if (!contract) {
+                return res.status(404).send("Договор не найден");
+            }
+
+            const currentBalance = parseFloat(contract.current_balance) || 0;
+            const newBalance = currentBalance + parseFloat(amount);
+            const now = new Date();
+            
+            // Проверяем нужно ли списывать абонплату
+            const shouldDebit = contract.price && newBalance >= contract.price && 
+                              (!contract.next_debit_date || new Date(contract.next_debit_date) <= now);
+
+            if (shouldDebit) {
+                const lastDebitDate = now;
+                const nextDebitDate = new Date(now);
+                nextDebitDate.setDate(nextDebitDate.getDate() + 31);
+                
+                // Списываем абонплату и обновляем статус
+                pool.query(
+                    `UPDATE contract c 
+                     INNER JOIN balance b ON c.balance_id = b.id 
+                     SET 
+                        b.current_balance = ?,
+                        b.last_debit = ?,
+                        b.last_debit_date = ?,
+                        b.next_debit_date = ?,
+                        c.contract_status = CASE 
+                            WHEN c.contract_status = 'Приостановлен' 
+                            THEN 'Активный' 
+                            ELSE c.contract_status 
+                        END
+                     WHERE c.contract_number = ?`,
+                    [
+                        newBalance - contract.price,
+                        amount, // Сохраняем сумму пополнения, а не списания
+                        lastDebitDate,
+                        nextDebitDate,
+                        contract_number
+                    ],
+                    (err) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).send("Ошибка сервера");
+                        }
+                        res.redirect(`/contract?tab=balance&number=${contract_number}`);
+                    }
+                );
+            } else {
+                // Просто пополняем баланс без списания абонплаты
+                pool.query(
+                    `UPDATE balance b 
+                     INNER JOIN contract c ON c.balance_id = b.id 
+                     SET 
+                        b.current_balance = ?,
+                        b.last_debit = ?,
+                        b.last_debit_date = ?
+                     WHERE c.contract_number = ?`,
+                    [newBalance, amount, new Date(), contract_number],
+                    (err) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).send("Ошибка сервера");
+                        }
+                        res.redirect(`/contract?tab=balance&number=${contract_number}`);
+                    }
+                );
+            }
+        }
+    );
+});
+
+app.post("/contract/debit-balance", function (req, res) {
+    const { contract_number, amount } = req.body;
+    const debitAmount = parseFloat(amount);
+
+    if (isNaN(debitAmount) || debitAmount <= 0) {
+        return res.status(400).send("Некорректная сумма списания");
+    }
+
+    pool.query(
+        `SELECT b.current_balance 
+         FROM contract c 
+         INNER JOIN balance b ON c.balance_id = b.id 
+         WHERE c.contract_number = ?`,
+        [contract_number],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера");
+            }
+
+            const currentBalance = parseFloat(results[0]?.current_balance || 0);
+            const newBalance = currentBalance - debitAmount;
+
+            if (newBalance < 0) {
+                return res.status(400).send("Недостаточно средств для списания");
+            }
+
+            pool.query(
+                `UPDATE balance b 
+                 INNER JOIN contract c ON c.balance_id = b.id 
+                 SET b.current_balance = ?,
+                     b.last_credit = ? 
+                 WHERE c.contract_number = ?`,
+                [newBalance, debitAmount, contract_number],
+                (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send("Ошибка сервера");
+                    }
+                    res.redirect(`/contract?tab=balance&number=${contract_number}`);
+                }
+            );
+        }
+    );
+});
+
+app.post("/update-contract", function (req, res) {
+    const originalContractNumber = req.body.original_contract_number;
+    
+    // Обрабатываем даты без добавления времени
+    const updateData = {
+        contract_number: req.body.contract_number,
+        full_name: req.body.full_name,
+        phone: req.body.phone,
+        connection_address: req.body.connection_address,
+        document_type: req.body.document_type,
+        document_series: req.body.document_series,
+        document_number: req.body.document_number,
+        issued_by: req.body.document_issued_by,
+        issue_date: req.body.document_issue_date, // только дата
+        registration_address: req.body.registration_address,
+        birth_date: req.body.birth_date, // только дата
+        contract_status: req.body.contract_status,
+        contract_date: req.body.contract_date, // только дата
+        actual_connection_date: req.body.connection_date || null // только дата или null
+    };
+
+    pool.query(
+        "UPDATE contract SET ? WHERE contract_number = ?",
+        [updateData, originalContractNumber],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера");
+            }
+            res.redirect(`/contract?tab=parameters&number=${req.body.contract_number}`);
+        }
+    );
+});
+
+app.post("/create-connection", function (req, res) {
+    const { name, min_ip, max_ip, host } = req.body;
+    
+    pool.query(
+        "INSERT INTO connection (name, min_ip, max_ip, host) VALUES (?, ?, ?, ?)",
+        [name, min_ip, max_ip, host],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера");
+            }
+            res.redirect("/server?tab=connections");
+        }
+    );
+});
+
+// Add helper for date formatting
+hbs.registerHelper("formatDate", function(date) {
+    if (!date) return "Не определено";
+    return new Date(date).toLocaleDateString("ru-RU");
+});
+
 app.listen(3000, function () {
     console.log("Сервер ожидает подключения на http://localhost:3000...");
+});
+
+app.post("/contract/set-connection", function (req, res) {
+    const { contract_number, connection_id, ip_suffix } = req.body;
+
+    // Получаем prefix IP из выбранного соединения
+    pool.query(
+        "SELECT min_ip FROM connection WHERE id = ?",
+        [connection_id],
+        (err, results) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).send("Ошибка сервера");
+            }
+
+            const prefixIP = results[0].min_ip.split('.').slice(0, 2).join('.');
+            const fullIP = `${prefixIP}.${ip_suffix}`;
+
+            // Обновляем connection_id и ip в таблице contract
+            pool.query(
+                "UPDATE contract SET connection_id = ?, ip = ? WHERE contract_number = ?",
+                [connection_id, fullIP, contract_number],
+                (err) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send("Ошибка сервера");
+                    }
+                    res.redirect(`/contract?tab=connections&number=${contract_number}`);
+                }
+            );
+        }
+    );
+});
+
+app.get("/test-connection", function (req, res) {
+    const host = req.query.host;
+    
+    ping.promise.probe(host)
+        .then(function (result) {
+            res.json({ 
+                alive: result.alive,
+                time: result.time || 0
+            });
+        })
+        .catch(function (error) {
+            res.status(500).json({ error: "Ошибка проверки" });
+        });
 });

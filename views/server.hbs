@@ -70,7 +70,8 @@
                         </svg>
                         Статус сетей
                     </a>
-                    <a href="/server?tab=connections" class="nav-btn {{#if (eq activeTab 'connections')}}active{{/if}}">
+                    <a href="{{#if isPro}}/server?tab=connections{{else}}#{{/if}}" 
+                       class="nav-btn {{#if (eq activeTab 'connections')}}active{{/if}} {{#unless isPro}}disabled{{/unless}}">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 1 1 0 10h-2M8 12h8"/>
                         </svg>
@@ -153,13 +154,114 @@
                 {{else if (eq activeTab 'network')}}
                     <h2>Статус сетей</h2>
                     <div class="network-content">
-                        <!-- Здесь будет содержимое для статуса сетей -->
+                        {{#if connections}}
+                            <div class="connections-list">
+                                <table class="connections-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Название</th>
+                                            <th>Статус</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each connections}}
+                                            <tr>
+                                                <td>{{name}}</td>
+                                                <td id="status-{{id}}">Не проверено</td>
+                                                <td>
+                                                    <button onclick="testConnection('{{id}}', '{{host}}')" class="test-btn">Тест</button>
+                                                </td>
+                                            </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {{/if}}
                     </div>
-                {{else}}
+                    <script>
+                        function testConnection(id, host) {
+                            const statusCell = document.getElementById(`status-${id}`);
+                            statusCell.textContent = 'Проверка...';
+                            
+                            fetch(`/test-connection?host=${host}`)
+                                .then(response => response.json())
+                                .then((data) => {
+                                    statusCell.textContent = data.alive ? 
+                                        `Доступно (${data.time} ms)` : 'Недоступно';
+                                    statusCell.className = data.alive ? 'status-ok' : 'status-error';
+                                })
+                                .catch(error => {
+                                    statusCell.textContent = 'Ошибка проверки';
+                                    statusCell.className = 'status-error';
+                                });
+                        }
+                    </script>
+                {{else if (eq activeTab 'connections')}}
                     <h2>Соединения</h2>
+                    {{#if isPro}}
                     <div class="connections-content">
-                        <!-- Здесь будет содержимое для соединений -->
+                        {{#if connections}}
+                            <div class="connections-list">
+                                <table class="connections-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Название</th>
+                                            <th>Минимальный IP</th>
+                                            <th>Максимальный IP</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{#each connections}}
+                                            <tr>
+                                                <td>{{id}}</td>
+                                                <td>{{name}}</td>
+                                                <td>{{min_ip}}</td>
+                                                <td>{{max_ip}}</td>
+                                                <td>
+                                                    <a href="/delete-connection?id={{id}}" class="delete-btn small">Удалить</a>
+                                                </td>
+                                            </tr>
+                                        {{/each}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {{else}}
+                            <p class="no-data">Соединения не найдены</p>
+                        {{/if}}
+
+                        <div class="connection-form-container">
+                            <h3>Новое соединение</h3>
+                            <form action="/create-connection" method="POST" class="connection-form">
+                                <div class="form-row">
+                                    <label>Название:</label>
+                                    <input type="text" name="name" required>
+                                </div>
+                                <div class="form-row">
+                                    <label>Минимальный IP:</label>
+                                    <input type="text" name="min_ip" required pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" placeholder="xxx.xxx.xxx.xxx">
+                                </div>
+                                <div class="form-row">
+                                    <label>Максимальный IP:</label>
+                                    <input type="text" name="max_ip" required pattern="\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" placeholder="xxx.xxx.xxx.xxx">
+                                </div>
+                                <div class="form-row">
+                                    <label>Хост(test):</label>
+                                    <input type="text" name="host" placeholder="example.com или IP-адрес">
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="save-btn">Создать</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
+                    {{else}}
+                    <div class="access-denied">
+                        <p>Управление соединениями доступно только пользователям с ролью PRO</p>
+                    </div>
+                    {{/if}}
                 {{/if}}
             </section>
         </div>
