@@ -350,7 +350,7 @@ h2 {
 .contract-nav {
     background: white;
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     height: fit-content;
 }
@@ -569,6 +569,46 @@ h2 {
     padding: 2rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     min-height: 400px;
+}
+
+.server-grid button {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: background-color 0.2s;
+}
+
+.server-grid .print-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+.server-grid .print-btn:hover {
+    background: #388E3C;
+}
+
+.server-grid .delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.server-grid .delete-btn:hover {
+    background: #c82333;
+}
+
+.server-grid .btn-icon {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
 }
 
 /* Settings Page Styles */
@@ -1212,7 +1252,7 @@ select:hover {
 }
 
 #ipSuffix {
-    width: 100px;
+    width: 110px;
 }
 
 .test-btn {
@@ -1231,4 +1271,68 @@ select:hover {
 .status-error {
     color: #dc3545;
     font-weight: 500;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 20px auto 0;
+}
+
+.actions-grid button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+.actions-grid .print-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+.actions-grid .print-btn:hover {
+    background: #388E3C;
+}
+
+.actions-grid .delete-btn {
+    background: #dc3545;
+    color: white;
+}
+
+.actions-grid .delete-btn:hover {
+    background: #c82333;
+}
+
+.actions-grid .btn-icon {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+}
+
+.nav-btn.print-btn {
+    background: #4CAF50;
+    color: white;
+    margin-top: 20px;
+    font-size: 16px;
+    border-radius: 8px;
+}
+
+.nav-btn.delete-btn {
+    background: #dc3545;
+    color: white;
+    margin-top: 10px;
+    font-size: 16px;
+    border-radius: 8px;
 }

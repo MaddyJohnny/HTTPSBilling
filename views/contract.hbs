@@ -85,16 +85,46 @@
                         </svg>
                         Соединения
                     </a>
+                    {{#if hasContract}}
+                    <button onclick="window.print()" class="nav-btn print-btn">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M6 9V2h12v7"></path>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                            <path d="M6 14h12v8H6z"></path>
+                        </svg>
+                        Печать договора
+                    </button>
+                    {{#if canDeleteContract}}
+                    <button onclick="deleteContract('{{contractNumber}}')" class="nav-btn delete-btn">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+                            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        Удалить договор
+                    </button>
+                    {{/if}}
+                    {{/if}}
                 </div>
+
+                <script>
+                    function deleteContract(contractNumber) {
+                        if (confirm('Вы уверены, что хотите удалить договор?')) {
+                            window.location.href = `/delete-contract?number=${contractNumber}`;
+                        }
+                    }
+                </script>
             </section>
 
             <section class="contract-content">
                 {{#if (eq activeTab 'parameters')}}
                     <div class="tab-content active" id="parameters">
-                        <h2>Параметры договора</h2>
-                        <form class="contract-form" action="{{#if contractNumber}}/update-contract{{else}}/create-contract{{/if}}" method="POST">
-                            {{#if contractNumber}}
-                            <input type="hidden" name="original_contract_number" value="{{contractNumber}}">
+                        <h2>{{#if contract}}Редактирование{{else}}Создание{{/if}} договора</h2>
+                        <form class="contract-form" action="{{#if contract}}/update-contract{{else}}/create-contract{{/if}}" method="POST">
+                            {{#if contract}}
+                            <input type="hidden" name="original_contract_number" value="{{contract.contract_number}}">
                             {{/if}}
                             <div class="form-grid">
                                 <div class="form-group">
