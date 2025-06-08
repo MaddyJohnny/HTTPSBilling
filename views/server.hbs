@@ -87,7 +87,7 @@
                         {{#if canManageTariffs}}
                         <div class="tariff-item new-tariff">
                             <form action="/create-tariff" method="POST" class="tariff-form">
-                                <h3>Новый тарифный план</h3>
+                                <input type="hidden" name="user_id" value="{{user.id}}">
                                 <div class="form-row">
                                     <label>Название:</label>
                                     <input type="text" name="name" required>
@@ -235,6 +235,7 @@
                         <div class="connection-form-container">
                             <h3>Новое соединение</h3>
                             <form action="/create-connection" method="POST" class="connection-form">
+                                <input type="hidden" name="user_id" value="{{../user.id}}">
                                 <div class="form-row">
                                     <label>Название:</label>
                                     <input type="text" name="name" required>

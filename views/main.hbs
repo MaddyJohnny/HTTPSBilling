@@ -77,7 +77,7 @@
             <section class="summary-card">
                 <h2>Сводка по договорам</h2>
                 <div class="summary-grid">
-                    <div class="summary-item active">
+                    <a href="/search?contract_status=Активный" class="summary-item full-width">
                         <div class="summary-icon">
                             <svg viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10" class="success"/>
@@ -88,8 +88,8 @@
                             <span class="summary-number">{{active_users}}</span>
                             <span class="summary-label">Активные договоры</span>
                         </div>
-                    </div>
-                    <div class="summary-item suspended">
+                    </a>
+                    <a href="/search?contract_status=Приостановлен" class="summary-item">
                         <div class="summary-icon">
                             <svg viewBox="0 0 24 24">
                                 <circle cx="12" cy="12" r="10" class="warning"/>
@@ -99,6 +99,40 @@
                         <div class="summary-content">
                             <span class="summary-number">{{passive_users}}</span>
                             <span class="summary-label">Приостановленные договоры</span>
+                        </div>
+                    </a>
+                    <a href="/search?contract_status=Расторгнут" class="summary-item">
+                        <div class="summary-icon">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10" class="danger"/>
+                                <path d="M8 8l8 8M16 8l-8 8"/>
+                            </svg>
+                        </div>
+                        <div class="summary-content">
+                            <span class="summary-number">{{terminated_users}}</span>
+                            <span class="summary-label">Расторгнутые договоры</span>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="statistics-container">
+                    <h3>Статистика договоров</h3>
+                    <div class="statistics-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Новых за месяц</span>
+                            <span class="stat-number">{{contracts_this_month}}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Прошлый месяц</span>
+                            <span class="stat-number">{{contracts_last_month}}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Средний платеж</span>
+                            <span class="stat-number">{{avg_payment}}₽</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Всего договоров</span>
+                            <span class="stat-number">{{total_contracts}}</span>
                         </div>
                     </div>
                 </div>

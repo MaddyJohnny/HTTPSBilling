@@ -86,7 +86,7 @@
                         Соединения
                     </a>
                     {{#if hasContract}}
-                    <button onclick="window.print()" class="nav-btn print-btn">
+                    <button onclick="generatePDF()" class="nav-btn print-btn">
                         <svg class="btn-icon" viewBox="0 0 24 24">
                             <path d="M6 9V2h12v7"></path>
                             <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
@@ -94,6 +94,12 @@
                         </svg>
                         Печать договора
                     </button>
+
+                    <script>
+                        function generatePDF() {
+                            window.open('/generate-contract-pdf?number={{contractNumber}}', '_blank');
+                        }
+                    </script>
                     {{#if canDeleteContract}}
                     <button onclick="deleteContract('{{contractNumber}}')" class="nav-btn delete-btn">
                         <svg class="btn-icon" viewBox="0 0 24 24">
@@ -123,6 +129,7 @@
                     <div class="tab-content active" id="parameters">
                         <h2>{{#if contract}}Редактирование{{else}}Создание{{/if}} договора</h2>
                         <form class="contract-form" action="{{#if contract}}/update-contract{{else}}/create-contract{{/if}}" method="POST">
+                            <input type="hidden" name="user_id" value="{{user.id}}">
                             {{#if contract}}
                             <input type="hidden" name="original_contract_number" value="{{contract.contract_number}}">
                             {{/if}}
@@ -189,6 +196,7 @@
                                     <select name="contract_status" required>
                                         <option value="Приостановлен" {{#if (eq contract_status "Приостановлен")}}selected{{/if}}>Приостановлен</option>
                                         <option value="Активный" {{#if (eq contract_status "Активный")}}selected{{/if}}>Активный</option>
+                                        <option value="Расторгнут" {{#if (eq contract_status "Расторгнут")}}selected{{/if}}>Расторгнут</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
