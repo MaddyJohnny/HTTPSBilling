@@ -6,7 +6,6 @@ const hbs = require("hbs");
 const ping = require("ping");
 const PDFDocument = require('pdfkit');
 const generateContractContent = require('./templates/contractTemplate');
-// Изменяем путь к шрифту
 const font = 'fonts/Inter-Regular.otf';
 const app = express();
 
@@ -14,7 +13,6 @@ app.use(express.static('public'));
 
 app.use(express.urlencoded({ extended: true }));
 
-// Регистрируем хелперы в начале файла
 hbs.registerHelper("formatDate", function(date) {
     if (!date) return "Не определено";
     return new Date(date).toLocaleDateString("ru-RU");
@@ -51,7 +49,6 @@ const pool = mysql.createPool({
 
 app.set("view engine", "hbs");
 
-// Add this function before app.get("/contract")
 function formatContractNumber(date, count) {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -60,11 +57,10 @@ function formatContractNumber(date, count) {
     return `${month}${day}${number}/${year}`;
 }
 
-// Add this helper function at the top of the file
 function formatDateForInput(mysqlDate) {
     if (!mysqlDate) return '';
     const date = new Date(mysqlDate);
-    return date.toLocaleDateString('en-CA'); // Формат YYYY-MM-DD без изменения временной зоны
+    return date.toLocaleDateString('en-CA');
 }
 
 function formatDateToRussian(date) {
@@ -109,7 +105,6 @@ app.get("/main", (req, res) => {
       return date;
     });
     
-    // Добавляем хелпер для форматирования телефона
 hbs.registerHelper("formatPhone", (phone) => {
     if (!phone) return '';
     const cleaned = phone.replace(/\D/g, '');
@@ -120,13 +115,11 @@ hbs.registerHelper("formatPhone", (phone) => {
     return phone;
 });
 
-    // Get current date info
     const now = new Date();
     const firstDayThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const firstDayLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const firstDayNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    // First query - active users
     pool.query(
         "SELECT COUNT(*) AS active_users FROM contract WHERE contract_status = ?",
         ['Активный'],
@@ -136,7 +129,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                 return res.status(500).send("Ошибка сервера");
             }
 
-            // Second query - suspended users
             pool.query(
                 "SELECT COUNT(*) AS passive_users FROM contract WHERE contract_status = ?",
                 ['Приостановлен'],
@@ -146,7 +138,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                         return res.status(500).send("Ошибка сервера");
                     }
 
-                    // Third query - terminated users
                     pool.query(
                         "SELECT COUNT(*) AS terminated_users FROM contract WHERE contract_status = ?",
                         ['Расторгнут'],
@@ -156,7 +147,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                                 return res.status(500).send("Ошибка сервера");
                             }
 
-                            // Fourth query - contracts this month
                             pool.query(
                                 "SELECT COUNT(*) AS contracts_this_month FROM contract WHERE contract_date BETWEEN ? AND ?",
                                 [firstDayThisMonth, firstDayNextMonth],
@@ -166,7 +156,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                                         return res.status(500).send("Ошибка сервера");
                                     }
 
-                                    // Fifth query - contracts last month
                                     pool.query(
                                         "SELECT COUNT(*) AS contracts_last_month FROM contract WHERE contract_date BETWEEN ? AND ?",
                                         [firstDayLastMonth, firstDayThisMonth],
@@ -176,7 +165,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                                                 return res.status(500).send("Ошибка сервера");
                                             }
 
-                                            // Sixth query - average payment
                                             pool.query(
                                                 "SELECT AVG(last_debit) AS avg_payment FROM balance WHERE last_debit > 0",
                                                 (err, avgPaymentResults) => {
@@ -185,7 +173,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                                                         return res.status(500).send("Ошибка сервера");
                                                     }
 
-                                                    // Seventh query - total contracts
                                                     pool.query(
                                                         "SELECT COUNT(*) AS total_contracts FROM contract",
                                                         (err, totalResults) => {
@@ -194,7 +181,6 @@ hbs.registerHelper("formatPhone", (phone) => {
                                                                 return res.status(500).send("Ошибка сервера");
                                                             }
 
-                                                            // Last query - notifications
                                                             pool.query(
                                                                 "SELECT * FROM notification ORDER BY id DESC LIMIT 5",
                                                                 (err, notificationResults) => {
@@ -246,7 +232,6 @@ app.get("/contract", function (req, res) {
 
         if (contractNumber) {
             if (activeTab === 'connections') {
-                // Получаем список соединений
                 pool.query(
                     `SELECT c.*, c.connection_id, c.ip, t.name as tariff_name 
                      FROM contract c 
@@ -260,13 +245,11 @@ app.get("/contract", function (req, res) {
                         }
 
                         const contract = contractResults[0];
-                        // Получаем последние два октета IP если он есть
                         let ipSuffix = '';
                         if (contract.ip) {
                             ipSuffix = contract.ip.split('.').slice(2).join('.');
                         }
 
-                        // Получаем все соединения
                         pool.query("SELECT * FROM connection", (err, connectionResults) => {
                             if (err) {
                                 console.error(err);
@@ -336,7 +319,6 @@ app.get("/contract", function (req, res) {
                     }
                 );
             } else if (activeTab === 'tariff') {
-                // Получаем данные договора и список тарифов
                 pool.query(
                     `SELECT c.*, t.name as tariff_name 
                      FROM contract c 
@@ -349,7 +331,6 @@ app.get("/contract", function (req, res) {
                             return res.status(500).send("Ошибка сервера");
                         }
 
-                        // Получаем все тарифы для выбора
                         pool.query("SELECT * FROM tariffplan", (err, tariffResults) => {
                             if (err) {
                                 console.error(err);
@@ -409,13 +390,12 @@ app.get("/contract", function (req, res) {
                         activeTab,
                         contract,
                         contractExists: !!contract,
-                        // Обновляем имена переменных
                         contractNumber: contract.contract_number,
-                        contract_status: contract.contract_status, // убедимся, что передается правильное имя поля
+                        contract_status: contract.contract_status,
                         full_name: contract.full_name,
                         phone: contract.phone,
                         connection_address: contract.connection_address,
-                        registration_address: contract.registration_address,  // изменено с registrationAddress
+                        registration_address: contract.registration_address,
                         birthDate: formatDateForInput(contract.birth_date),
                         documentType: contract.document_type,
                         documentSeries: contract.document_series,
@@ -432,9 +412,8 @@ app.get("/contract", function (req, res) {
                 });
             }
         } else {
-            // Изменяем запрос для подсчета договоров
             const today = new Date();
-            const currentDate = today.toISOString().slice(0, 10); // YYYY-MM-DD format
+            const currentDate = today.toISOString().slice(0, 10);
             
             pool.query(
                 `SELECT COUNT(*) as count FROM contract 
@@ -491,7 +470,6 @@ app.get("/search", function (req, res) {
         params.push(`%${connection_address}%`);
     }
 
-    // Если есть хотя бы один параметр поиска
     if (contract_number || contract_status || full_name || connection_address) {
         pool.query(query, params, (err, results) => {
             if (err) {
@@ -515,7 +493,6 @@ app.get("/search", function (req, res) {
 app.get("/server", function (req, res) {
     const activeTab = req.query.tab || 'tariffs';
     
-    // Получаем роль пользователя
     pool.query("SELECT role FROM user WHERE id = ?", [req.session.user.id], (err, roleResults) => {
         if (err) {
             return res.status(500).send("Ошибка сервера");
@@ -525,7 +502,6 @@ app.get("/server", function (req, res) {
         const canManageTariffs = ['PLUS', 'PRO'].includes(userRole);
         const isPro = userRole === 'PRO';
 
-        // Добавляем данные пользователя в контекст
         const user = {
             id: req.session.user.id,
             role: userRole
@@ -559,7 +535,7 @@ app.get("/server", function (req, res) {
                     tariffs: tariffResults,
                     canManageTariffs,
                     isPro,
-                    user // Добавляем пользователя в контекст
+                    user
                 });
             });
         }
@@ -702,7 +678,6 @@ app.get("/delete-tariff", function (req, res) {
 });
 
 app.post("/create-user", async function (req, res) {
-    // Проверяем права доступа
     pool.query("SELECT role FROM user WHERE id = ?", [req.session.user.id], async (err, results) => {
         if (err) {
             return res.status(500).send("Ошибка сервера");
@@ -716,10 +691,8 @@ app.post("/create-user", async function (req, res) {
         const { fullname, login, password, role } = req.body;
         
         try {
-            // Хэшируем пароль
             const hashedPassword = await bcrypt.hash(password, 10);
             
-            // Создаем пользователя
             pool.query(
                 "INSERT INTO user (fullname, login, password, role) VALUES (?, ?, ?, ?)",
                 [fullname, login, hashedPassword, role],
@@ -765,7 +738,6 @@ app.post("/update-user", async function (req, res) {
 app.get("/delete-user", function (req, res) {
     const { id } = req.query;
     
-    // Проверяем что пользователь не удаляет сам себя
     if (id === req.session.user.id.toString()) {
         return res.status(400).send("Нельзя удалить свою учетную запись");
     }
@@ -811,7 +783,6 @@ app.get("/delete-notification", function (req, res) {
 
 app.post("/create-contract", function (req, res) {
     const user_id = req.session.user.id;
-    // Сначала создаем запись в balance
     pool.query(
         "INSERT INTO balance (current_balance, last_debit, last_debit_date, next_debit_date) VALUES (0, 0, NULL, NULL)",
         (err, balanceResult) => {
@@ -838,10 +809,8 @@ app.post("/create-contract", function (req, res) {
                 connection_date
             } = req.body;
 
-            // Проверяем дату подключения
             const actual_connection_date = connection_date || null;
 
-            // Затем создаем запись в contract
             pool.query(
                 `INSERT INTO contract (
                     contract_number, full_name, phone, connection_address, 
@@ -873,7 +842,6 @@ app.post("/create-contract", function (req, res) {
                         console.error(err);
                         return res.status(500).send("Ошибка сервера. Попробуйте позже.");
                     }
-                    // После создания договора редиректим с номером договора
                     res.redirect(`/contract?tab=parameters&number=${req.body.contract_number}`);
                 }
             );
@@ -884,7 +852,6 @@ app.post("/create-contract", function (req, res) {
 app.post("/contract/set-tariff", function (req, res) {
     const { contract_number, tariff_id } = req.body;
     
-    // Получаем информацию о тарифе и текущем балансе
     pool.query(
         `SELECT t.price, c.balance_id, b.current_balance 
          FROM tariffplan t, contract c 
@@ -903,7 +870,6 @@ app.post("/contract/set-tariff", function (req, res) {
             const nextDebitDate = new Date(now);
             nextDebitDate.setDate(nextDebitDate.getDate() + 31);
 
-            // Обновляем договор и баланс
             pool.query(
                 `UPDATE contract c 
                  INNER JOIN balance b ON c.balance_id = b.id 
@@ -939,12 +905,10 @@ app.post("/contract/set-tariff", function (req, res) {
 app.post("/contract/add-payment", function (req, res) {
     const { contract_number, amount } = req.body;
     
-    // Проверяем сумму платежа
     if (isNaN(amount) || amount <= 0) {
         return res.status(400).send("Некорректная сумма платежа");
     }
     
-    // Получаем информацию о договоре, тарифе и балансе
     pool.query(
         `SELECT c.*, t.price, b.current_balance, b.next_debit_date 
          FROM contract c 
@@ -967,7 +931,6 @@ app.post("/contract/add-payment", function (req, res) {
             const newBalance = currentBalance + parseFloat(amount);
             const now = new Date();
             
-            // Проверяем нужно ли списывать абонплату
             const shouldDebit = contract.price && newBalance >= contract.price && 
                               (!contract.next_debit_date || new Date(contract.next_debit_date) <= now);
 
@@ -978,7 +941,6 @@ app.post("/contract/add-payment", function (req, res) {
                 
                 const finalBalance = newBalance - contract.price;
                 
-                // Обновляем договор и баланс
                 pool.query(
                     `UPDATE contract c 
                      INNER JOIN balance b ON c.balance_id = b.id 
@@ -1081,7 +1043,6 @@ app.post("/contract/debit-balance", function (req, res) {
 app.post("/update-contract", function (req, res) {
     const originalContractNumber = req.body.original_contract_number;
     
-    // Обрабатываем даты без добавления времени
     const updateData = {
         contract_number: req.body.contract_number,
         full_name: req.body.full_name,
@@ -1091,12 +1052,12 @@ app.post("/update-contract", function (req, res) {
         document_series: req.body.document_series,
         document_number: req.body.document_number,
         issued_by: req.body.document_issued_by,
-        issue_date: req.body.document_issue_date, // только дата
+        issue_date: req.body.document_issue_date,
         registration_address: req.body.registration_address,
-        birth_date: req.body.birth_date, // только дата
+        birth_date: req.body.birth_date,
         contract_status: req.body.contract_status,
-        contract_date: req.body.contract_date, // только дата
-        actual_connection_date: req.body.connection_date || null // только дата или null
+        contract_date: req.body.contract_date,
+        actual_connection_date: req.body.connection_date || null
     };
 
     pool.query(
@@ -1113,7 +1074,6 @@ app.post("/update-contract", function (req, res) {
 });
 
 app.post("/create-connection", function (req, res) {
-    // Get user_id from session if not provided in request
     const user_id = req.body.user_id || req.session.user.id;
     const { name, min_ip, max_ip, host } = req.body;
     
@@ -1160,7 +1120,6 @@ app.post("/contract/set-connection", function (req, res) {
     );
 });
 
-// Убедимся что это последний обработчик перед app.listen
 app.get("/test-connection", function (req, res) {
     const host = req.query.host;
     
@@ -1179,7 +1138,6 @@ app.get("/test-connection", function (req, res) {
 app.get('/delete-contract', (req, res) => {
     const contractNumber = req.query.number;
     
-    // Получаем balance_id перед удалением
     pool.query('SELECT balance_id FROM contract WHERE contract_number = ?', [contractNumber], (err, results) => {
         if (err) {
             console.error('Error checking contract:', err);
@@ -1192,14 +1150,12 @@ app.get('/delete-contract', (req, res) => {
 
         const balanceId = results[0].balance_id;
 
-        // Сначала удаляем договор
         pool.query('DELETE FROM contract WHERE contract_number = ?', [contractNumber], (err) => {
             if (err) {
                 console.error('Error deleting contract:', err);
                 return res.status(500).send('Ошибка при удалении договора');
             }
 
-            // Затем удаляем баланс
             pool.query('DELETE FROM balance WHERE id = ?', [balanceId], (err) => {
                 if (err) {
                     console.error('Error deleting balance:', err);
@@ -1211,17 +1167,14 @@ app.get('/delete-contract', (req, res) => {
     });
 });
 
-// Добавить перед app.listen():
 app.get('/generate-contract-pdf', (req, res) => {
     const contractNumber = req.query.number;
     
-    // Меняем заголовок для открытия в браузере
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename=contract.pdf');
     
     const doc = new PDFDocument();
     
-    // Регистрируем шрифты
     doc.registerFont('Inter', 'fonts/Inter.otf');
     doc.registerFont('Inter-Bold', 'fonts/Inter-Bold.otf');
     
@@ -1246,13 +1199,12 @@ app.get('/generate-contract-pdf', (req, res) => {
                 return res.status(404).send('Договор не найден');
             }
 
-            // Расчет шлюза на основе IP
             let gateway = '';
             if (contract.ip) {
                 const ipParts = contract.ip.split('.');
                 if (ipParts.length === 4) {
                     const lastOctet = parseInt(ipParts[3]);
-                    ipParts[3] = (lastOctet - 1).toString(); // Уменьшаем последний октет на 1
+                    ipParts[3] = (lastOctet - 1).toString();
                     gateway = ipParts.join('.');
                 }
             }
@@ -1284,7 +1236,6 @@ app.get('/generate-contract-pdf', (req, res) => {
 app.get("/delete-connection", function (req, res) {
     const { id } = req.query;
 
-    // Сначала получаем информацию о соединении для определения диапазона IP
     pool.query("SELECT min_ip, max_ip FROM connection WHERE id = ?", [id], (err, results) => {
         if (err) {
             console.error(err);
@@ -1298,7 +1249,6 @@ app.get("/delete-connection", function (req, res) {
         const connection = results[0];
         const minIpPrefix = connection.min_ip.split('.').slice(0, 2).join('.');
 
-        // Обновляем IP адреса у договоров, которые использовали это соединение
         pool.query(
             "UPDATE contract SET ip = '0.0.0.0', connection_id = NULL WHERE connection_id = ? OR ip LIKE ?",
             [id, `${minIpPrefix}%`],
@@ -1308,7 +1258,6 @@ app.get("/delete-connection", function (req, res) {
                     return res.status(500).send("Ошибка при обновлении договоров");
                 }
 
-                // Удаляем само соединение
                 pool.query("DELETE FROM connection WHERE id = ?", [id], (err) => {
                     if (err) {
                         console.error(err);
@@ -1321,7 +1270,6 @@ app.get("/delete-connection", function (req, res) {
     });
 });
 
-// Слушаем порт в самом конце файла
 app.listen(3000, function () {
     console.log("Сервер ожидает подключения на http://localhost:3000...");
 });
@@ -1349,7 +1297,6 @@ app.post('/search', (req, res) => {
     params.push(`%${address}%`);
   }
 
-  // Добавляем поиск по статусу
   if (contract_status) {
     query += ' AND contract_status = ?';
     params.push(contract_status);
@@ -1369,7 +1316,6 @@ app.post('/search', (req, res) => {
   });
 });
 
-// Добавляем GET маршрут для поддержки поиска через URL параметры
 app.get('/search', (req, res) => {
   const { contract_number, contract_status } = req.query;
 
@@ -1394,7 +1340,7 @@ app.get('/search', (req, res) => {
 
         res.render("search", {
             results: results,
-            isSearch: true, // Всегда показываем результаты, если есть параметры поиска
+            isSearch: true,
             query: req.query
         });
     });
@@ -1406,7 +1352,6 @@ app.get('/search', function (req, res) {
     const login = user ? user.login : "unknown";
 
     if (contract_status) {
-        // Если есть параметр contract_status, выполняем поиск
         pool.query(
             'SELECT * FROM contract WHERE contract_status = ?',
             [contract_status],
@@ -1425,7 +1370,6 @@ app.get('/search', function (req, res) {
             }
         );
     } else {
-        // Если параметров нет, показываем пустую форму
         res.render("search", {
             username: login,
             isSearch: false

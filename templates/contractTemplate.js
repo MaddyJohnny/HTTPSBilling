@@ -3,7 +3,6 @@ function generateContractContent(doc, data) {
     const leftColumnX = 50;
     const rightColumnX = pageWidth / 2 + 50;
     
-    // Левая колонка
     doc.fontSize(12)
        .font('fonts/Inter-Bold.otf')
        .text('ОПЕРАТОР', leftColumnX, 50)
@@ -18,7 +17,6 @@ function generateContractContent(doc, data) {
        .moveDown(0.5)
        .text('Почта: support@intervector.ru', leftColumnX);
 
-    // Правая колонка - сбрасываем Y позицию
     doc.font('fonts/Inter-Bold.otf')
        .text('АБОНЕНТ', rightColumnX, 50)
        .font('fonts/Inter-Regular.otf')
@@ -40,12 +38,10 @@ function generateContractContent(doc, data) {
        .moveDown(0.5)
        .text(`Телефон: ${data.phone}`, rightColumnX);
 
-    // Сбрасываем позицию курсора для основного содержимого
     doc.moveDown(15);
 
-    // Основная часть заказа
     const centerX = pageWidth / 2;
-    const contentWidth = 1000; // примерная ширина контента
+    const contentWidth = 1000;
     const leftMargin = centerX - (contentWidth / 2);
     doc.font('fonts/Inter-Bold.otf')
     .fontSize(16)
@@ -59,7 +55,6 @@ function generateContractContent(doc, data) {
         align: 'center'
     })
 
-    // Параметры подключения
     doc.fontSize(12)
     .font('fonts/Inter-Bold.otf')
     .text('1. Параметры присоединения к сети электросвязи ООО "ИнтерВектор":', leftColumnX, 400, {
@@ -76,7 +71,6 @@ function generateContractContent(doc, data) {
         align: 'left'
     });
 
-    // Тарифный план
     doc.font('fonts/Inter-Bold.otf')
     .text('2. Тарифный план:', leftColumnX, 470, {
         width: contentWidth,
@@ -92,7 +86,6 @@ function generateContractContent(doc, data) {
         align: 'left'
     });
 
-    // Настройки линии
     doc.moveDown()
        .font('fonts/Inter-Bold.otf')
        .text('3. Настройки выделенной линии:', {
@@ -121,7 +114,6 @@ function generateContractContent(doc, data) {
            width: pageWidth
        });
 
-    // Подписи
     doc.moveDown(2)
        .text(`Подпись Оператора ___________________ / ${data.operatorName}`, {
            align: 'left',
